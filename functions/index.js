@@ -18,13 +18,21 @@ const db = getFirestore();
 
 exports.newDonation = onRequest(async (request, response) => {
     try { 
-        console.log(request.body)
-        const {barcode, giftAidNumber='', email=''} = request.body
-        console.log(barcode, giftAidNumber, email)
-        const ref = await db.collection(collection).add({barcode, giftAidNumber, email, created: Timestamp.now(), status: 0, profit: null, notes: ''})
+        const {giftAidNumber='', email=''} = request.body
+        const ref = await db.collection(collection).add({giftAidNumber, email, created: Timestamp.now(), status: 0, profit: null, notes: ''})
         response.send({donationId: ref.id})
     } catch (error) {
         response.send({ok: false, error});
+    }
+});
+
+exports.addBarcode = onRequest(async (request, response) => {
+    try { 
+        const {donationId, barcode} = request.body;
+        const ref = await db.collection(collection).doc(donationId).update({barcode, generated: Timestamp.now()});
+        response.status(200).send({ok: true});
+    } catch (error) {
+        response.status(500).send({ok:false, error});
     }
 });
 
@@ -40,8 +48,9 @@ exports.getDetails = onRequest(async (request, response) => {
 
 exports.updateDetails = onRequest(async (request, response) => {
     try {
-        const {donationId} = request.body;
-        const donationRef = db.collection(collection).doc(donationId);
+        const {barcode} = request.body;
+        const donationRefs = await db.collection(collection).where('barcode', '==', barcode).get();
+        const donationRef = donationRefs.docs[0].ref;
         const updateData = {};
         // ** do input validation
         if ('status' in request.body) {
@@ -52,10 +61,9 @@ exports.updateDetails = onRequest(async (request, response) => {
         if ('profit' in request.body) {updateData.profit = request.body.profit};
         if ('notes' in request.body) {updateData.notes = request.body.notes};
         await donationRef.update(updateData, {exists: true});
-        response.status(200).send();
-    } catch (err) {
-        console.log(err)
-        response.status(404).send();
+        response.status(200).send({ok: true});
+    } catch (error) {
+        response.status(500).send({ok: false, error});
     }
 });
 
