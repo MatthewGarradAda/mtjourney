@@ -11,6 +11,7 @@ const transporter = nodemailer.createTransport({
 });
 
 async function sendEmail(to, subject, text) {
+    console.log({to, subject})
     return new Promise((resolve, reject) => {
         transporter.sendMail({from: process.env.GMAIL_USER, to, subject, text}, (error, info) => {
             resolve(!error)

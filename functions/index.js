@@ -5,10 +5,8 @@ const { initializeApp, applicationDefault, cert } = require('firebase-admin/app'
 const { getFirestore, Timestamp, FieldValue, Filter, Query} = require('firebase-admin/firestore');
 
 const {sendEmail} = require('../src/email');
-
-
-const url = "http://localhost:3000";
-const collection = "donations";
+const {createDonation, addBarcode, addOutcome, getDonation, getGiftAid} = require('../src/database');
+const {url, collection} = require('../src/constants');
 
 
 setGlobalOptions({region: 'europe-west2', memory: '128MiB'});
@@ -18,52 +16,42 @@ const db = getFirestore();
 
 exports.newDonation = onRequest(async (request, response) => {
     try { 
-        const {giftAidNumber='', email=''} = request.body
-        const ref = await db.collection(collection).add({giftAidNumber, email, created: Timestamp.now(), status: 0, profit: null, notes: ''})
-        response.send({donationId: ref.id})
+        const {giftAidNumber='', email=''} = request.body;
+        const ref = await createDonation(db, Timestamp.now(), giftAidNumber, email);
+        response.send({donationId: ref.id});
     } catch (error) {
-        response.send({ok: false, error});
+        console.log(error)
+        response.status(500).send({ok: false, error: error.message});
     }
 });
 
 exports.addBarcode = onRequest(async (request, response) => {
     try { 
         const {donationId, barcode} = request.body;
-        const ref = await db.collection(collection).doc(donationId).update({barcode, generated: Timestamp.now()});
+        const ref = await addBarcode(db, Timestamp.now(), donationId, barcode);
         response.status(200).send({ok: true});
     } catch (error) {
-        response.status(500).send({ok:false, error});
-    }
-});
-
-exports.getDetails = onRequest(async (request, response) => {
-    const donationId = request.query.donationId;
-    const donationDoc = await db.collection(collection).doc(donationId).get();
-    if (donationDoc.exists) {
-        response.send(donationDoc.data());
-    } else {
-        response.send({});
+        console.log(error)
+        response.status(500).send({ok: false, error: error.message});
     }
 });
 
 exports.updateDetails = onRequest(async (request, response) => {
     try {
         const {barcode} = request.body;
-        const donationRefs = await db.collection(collection).where('barcode', '==', barcode).get();
-        const donationRef = donationRefs.docs[0].ref;
         const updateData = {};
         // ** do input validation
         if ('status' in request.body) {
             updateData.status = request.body.status;
-            // ** Is this the correct way to do timestamp field value?
-            updateData.statusTimestamp = Timestamp.now();
+            updateData.statusTimestamp = Timestamp.now()
         };
         if ('profit' in request.body) {updateData.profit = request.body.profit};
         if ('notes' in request.body) {updateData.notes = request.body.notes};
-        await donationRef.update(updateData, {exists: true});
+        const ok = addOutcome(db, barcode, updateData);
         response.status(200).send({ok: true});
     } catch (error) {
-        response.status(500).send({ok: false, error});
+        console.log(error)
+        response.status(500).send({ok: false, error: error.message});
     }
 });
 
@@ -71,12 +59,13 @@ exports.updateDetails = onRequest(async (request, response) => {
 //     // ** Get blob, upload to cloud storage, write to images array, return filenames
 // })
 
+exports.getDetails = onRequest(async (request, response) => {
+    const {donationId} = request.query;
+    response.send(await getDonation(db, donationId))
+});
+
 exports.getGiftAid = onRequest(async (request, response) => {
-    const col = db.collection(collection);
-    const query = col.where('giftAidNumber', '!=', '');
-    const snapshot = await query.get();
-    const documents = snapshot.docs.map(doc => doc.data());
-    response.send(documents);
+    response.send(await getGiftAid(db));
 });
 
 exports.newDonationWatcher = onDocumentCreated(`/${collection}/{donationId}`, (event) => {
