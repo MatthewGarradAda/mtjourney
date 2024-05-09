@@ -1,0 +1,197 @@
+swagger: '2.0'
+info:
+  title: API Documentation
+  version: '1.0'
+host: 'localhost:5001/mustardtree-6b33e/europe-west2/'
+paths:
+  /newDonation:
+    post:
+      summary: Create a new donation
+      parameters:
+        - in: body
+          name: body
+          description: The giftAidNumber and email for the donation
+          required: true
+          schema:
+            type: object
+            properties:
+              giftAidNumber:
+                type: string
+              email:
+                type: string
+      responses:
+        200:
+          description: Successful operation
+          schema:
+            type: object
+            properties:
+              donationId:
+                type: string
+        500:
+          description: Error occurred
+          schema:
+            type: object
+            properties:
+              ok:
+                type: boolean
+              error:
+                type: string
+  /addBarcode:
+    post:
+      summary: Add a barcode to a donation
+      parameters:
+        - in: body
+          name: body
+          description: The donationId and barcode for the donation
+          required: true
+          schema:
+            type: object
+            properties:
+              donationId:
+                type: string
+              barcode:
+                type: string
+      responses:
+        200:
+          description: Successful operation
+          schema:
+            type: object
+            properties:
+              ok:
+                type: boolean
+        500:
+          description: Error occurred
+          schema:
+            type: object
+            properties:
+              ok:
+                type: boolean
+              error:
+                type: string
+  /updateDetails:
+    post:
+      summary: Update details of a donation
+      parameters:
+        - in: body
+          name: body
+          description: The barcode and updateData for the donation
+          required: true
+          schema:
+            type: object
+            properties:
+              barcode:
+                type: string
+              status: 
+                  type: number
+              profit: 
+                type: number
+              notes: 
+                type: string
+      responses:
+        200:
+          description: Successful operation
+          schema:
+            type: object
+            properties:
+              ok:
+                type: boolean
+        500:
+          description: Error occurred
+          schema:
+            type: object
+            properties:
+              ok:
+                type: boolean
+              error:
+                type: string
+  /getDetails:
+    get:
+      summary: Get details of a donation
+      parameters:
+        - in: query
+          name: donationId
+          required: true
+          type: string
+      responses:
+        200:
+          description: Successful operation
+          schema:
+            type: object
+            properties:
+              barcode: 
+                type: string
+                nullable: true
+              giftAidNumber: 
+                type: string
+              email: 
+                type: string
+              status: 
+                type: number
+              profit: 
+                type: number
+              notes: 
+                type: string
+              created: 
+                type: string
+                format: date-time
+              generated: 
+                type: string
+                format: date-time
+                nullable: true
+              statusTimestamp: 
+                type: string
+                format: date-time
+                nullable: true
+        500:
+          description: Error occurred
+          schema:
+            type: object
+            properties:
+              ok:
+                type: boolean
+              error:
+                type: string
+  /getGiftAid:
+    get:
+      summary: Get list of donations with gift aid
+      responses:
+        200:
+          description: Successful operation
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                barcode: 
+                  type: string
+                  nullable: true
+                giftAidNumber: 
+                  type: string
+                email: 
+                  type: string
+                status: 
+                  type: number
+                profit: 
+                  type: number
+                notes: 
+                  type: string
+                created: 
+                  type: string
+                  format: date-time
+                generated: 
+                  type: string
+                  format: date-time
+                  nullable: true
+                statusTimestamp: 
+                  type: string
+                  format: date-time
+                  nullable: true
+        500:
+          description: Error occurred
+          schema:
+            type: object
+            properties:
+              ok:
+                type: boolean
+              error:
+                type: string
