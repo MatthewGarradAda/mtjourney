@@ -16,13 +16,13 @@ To get started with the Mustard Tree Journey Tracker, follow these steps:
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/your-username/mustard-tree-journey-tracker.git
+    git clone https://github.com/MatthewGarradAda/mtjourney.git
     ```
 
 2. Install the dependencies:
 
     ```bash
-    cd mustard-tree-journey-tracker
+    cd mtjourney
     npm install
     ```
 
