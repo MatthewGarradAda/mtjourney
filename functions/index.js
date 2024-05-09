@@ -6,7 +6,7 @@ const { getFirestore, Timestamp, FieldValue, Filter, Query} = require('firebase-
 
 const {sendEmail} = require('../src/email');
 const {createDonation, addBarcode, addOutcome, getDonation, getGiftAid} = require('../src/database');
-const {url, collection} = require('../src/constants');
+const {url, collection, whitelist} = require('../src/constants');
 
 
 setGlobalOptions({region: 'europe-west2', memory: '128MiB'});
@@ -65,7 +65,13 @@ exports.getDetails = onRequest(async (request, response) => {
 });
 
 exports.getGiftAid = onRequest(async (request, response) => {
-    response.send(await getGiftAid(db));
+    const { host } = request.headers;
+    if (whitelist.includes(host?.split(':')[0])) {
+        response.send(await getGiftAid(db));
+    } else {
+        response.status(403).send({ ok: false, error: 'Access denied' });
+    }
+    
 });
 
 exports.newDonationWatcher = onDocumentCreated(`/${collection}/{donationId}`, (event) => {

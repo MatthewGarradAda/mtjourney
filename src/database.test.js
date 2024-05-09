@@ -29,7 +29,7 @@ describe('Testing firebase', () => {
         const donationRef = await createDonation(db, Timestamp.now(), '123', '');
         const donationId = donationRef.id;
         const donation = await getDonation(db, donationId)
-        expect(donation).toMatchObject({email: '', giftAidNumber: '123', status: 0})
+        expect(donation).toMatchObject({giftAidNumber: '123', status: 0})
         expect(donation).toHaveProperty('created')
     });
 
@@ -55,13 +55,12 @@ describe('Testing firebase', () => {
         const updateResult = await addOutcome(db, barcode, {status, notes, profit});
         expect(updateResult).toBeTruthy();
         const donation = await getDonation(db, donationId);
-        expect(donation).toMatchObject({email: '', giftAidNumber: '123', status, barcode, profit, notes});
+        expect(donation).toMatchObject({giftAidNumber: '123', status, barcode, profit, notes});
     });
 
     test('Create a donation and have it appear as gift aid', async () => {
         const donationRef = await createDonation(db, Timestamp.now(), '123', '');
         const docs = await getGiftAid(db);
-        console.log(docs)
         expect(docs[0]).toMatchObject({giftAidNumber: '123'});
     });
 })

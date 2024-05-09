@@ -31,9 +31,11 @@ function addOutcome(db, barcode, keys) {
 async function getDonation(db, donationId) {
     const donationDoc = await db.collection(collection).doc(donationId).get();
     if (donationDoc.exists) {
-        return donationDoc.data();
+        const data = donationDoc.data();
+        delete data.email;
+        return data;
     } else {
-        return {}
+        return {};
     }
 }
 
